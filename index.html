@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Top ATS Platform Jobs — Enterprise Databricks &amp; AWS Portfolio | Rishikesh</title>
+  <meta name="description" content="Enterprise, evidence-based data engineering portfolio for Top ATS Platform Jobs on AWS ECS Fargate, S3, Databricks Lakeflow SDP, Unity Catalog, and Lakeview.">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container nav-inner">
+      <a class="brand" href="#overview">
+        <span class="brand-badge" aria-hidden="true">DE</span>
+        <span>Rishikesh &middot; Top ATS Platform Jobs</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <ul class="nav-links">
+          <li><a href="#problem">Business Problem</a></li>
+          <li><a href="#architecture">HLD &amp; LLD</a></li>
+          <li><a href="#code">Code Flow</a></li>
+          <li><a href="#handover">Handover</a></li>
+          <li><a href="#gallery">Visual Evidence (36)</a></li>
+          <li><a href="#evidence">Evidence &amp; Safety</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <!-- SECTION 1: HERO & EXECUTIVE SUMMARY -->
+    <section id="overview" class="hero">
+      <div class="container">
+        <span class="section-kicker">Enterprise Data Engineering Case Study &middot; AWS + Databricks Lakehouse</span>
+        <h1>Top ATS Platform Jobs &mdash; Daily Job Market Lakehouse</h1>
+        <p class="hero-lead">
+          An automated, serverless lakehouse platform that ingests ~5.1 million global job postings (~2.12 GiB Parquet) daily from public Applicant Tracking System (ATS) feeds into Amazon S3 via AWS ECS Fargate, tracks historical job lifecycles using Databricks Lakeflow Spark Declarative Pipelines (SCD Type 2), enforces declarative data quality expectations, and powers a 3-page, 22-dataset Lakeview dashboard.
+        </p>
+
+        <div class="hero-meta">
+          <span class="badge badge-observed">[Runtime-Observed] Oct 2&ndash;5 SDP Runs &amp; AWS Fargate</span>
+          <span class="badge badge-implemented">[Implemented] Gen 3 Newacc (stapply-deploymentNewacc.zip)</span>
+          <span class="badge badge-unverified">[Unverified Runtime] Newacc 03_setup_schedules.py</span>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi-card kpi-green">
+            <div class="kpi-value">~5.1M</div>
+            <div class="kpi-label">Daily active job postings ingested</div>
+            <div class="kpi-cite">SDP pipeline (3).png &middot; Dash (3).png</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value">~2.12 GiB</div>
+            <div class="kpi-label">Daily Parquet streamed via Fargate</div>
+            <div class="kpi-cite">CloudWatch logs.png &middot; AWS_setup.txt</div>
+          </div>
+          <div class="kpi-card kpi-accent">
+            <div class="kpi-value">3 SQL / 9 Objects</div>
+            <div class="kpi-label">Consolidated from 7 tasks / 30 tables</div>
+            <div class="kpi-cite">bronze.sql &middot; silver.sql &middot; gold.sql</div>
+          </div>
+          <div class="kpi-card kpi-green">
+            <div class="kpi-value">~8 min</div>
+            <div class="kpi-label">Observed Gen 3 daily run duration</div>
+            <div class="kpi-cite">SDP pipeline (2).png (Oct 2&ndash;5)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value">3 Pages / 22</div>
+            <div class="kpi-label">Lakeview dashboard &amp; datasets</div>
+            <div class="kpi-cite">.lvdash.json &middot; Dash (1)&ndash;(9).png</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: BUSINESS PROBLEM & WHY WE BUILT THIS -->
+    <section id="problem" class="alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">01 &middot; Business Problem &amp; Engineering Motivation</span>
+          <h2>What Major Problem This Resolves &amp; Why It Was Built</h2>
+        </div>
+
+        <div class="problem-box">
+          <h3>The Core Business Gap: Point-in-Time Snapshots Are Blind to Market Movement</h3>
+          <p>
+            Public ATS aggregators publish a single daily file (<code>all.parquet</code>, ~5.1M rows) representing only jobs active <em>today</em>. For workforce analysts, recruiters, and market researchers, a raw snapshot cannot answer critical questions:
+          </p>
+          <ul>
+            <li><strong>Lifecycle &amp; Longevity:</strong> When did a specific job URL first appear, how many days has it stayed open, and when was it removed/filled?</li>
+            <li><strong>Daily Hiring Velocity:</strong> How many <em>net new</em> vs. <em>removed</em> jobs happened today by country, company, or role family?</li>
+            <li><strong>Standardization:</strong> Raw feeds contain messy timestamps, mixed salary strings, non-normalized commitments (<code>vollzeit</code>, <code>cdi</code>, <code>werkstudent</code>), and uncategorized job titles.</li>
+          </ul>
+          <div class="evidence-strip"><strong>Verified Source:</strong> <code>Archive/stapply-documentation.zip::short_documentation.md</code> (L10&ndash;28), <code>silver.sql</code> (L26&ndash;55).</div>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <span class="badge badge-observed">Problem 1 Solved</span>
+            <h3 style="margin-top:0.6rem;">Serverless Egress &amp; Memory Limits</h3>
+            <p>
+              <strong>Issue:</strong> Early Gen 1 runs failed downloading 2&ndash;3 GiB directly on Databricks Serverless (<code>file:</code> prefix errors, OOM, timeouts).<br>
+              <strong>Solution:</strong> Offloaded acquisition to an ephemeral <strong>AWS ECS Fargate</strong> container streaming 64 MiB multipart parts directly to S3 with 0 NAT Gateways.
+            </p>
+            <div class="evidence-strip"><code>project_architecture_challenges_learnings.py</code> L87&ndash;105 &middot; <code>CloudWatch logs.png</code></div>
+          </article>
+
+          <article class="card">
+            <span class="badge badge-observed">Problem 2 Solved</span>
+            <h3 style="margin-top:0.6rem;">97% Wasted Daily Re-Enrichment</h3>
+            <p>
+              <strong>Issue:</strong> Re-enriching 5.1M rows daily is costly when ~97% of job URLs carry over unchanged.<br>
+              <strong>Solution:</strong> Proved ~3% incremental enrichment in Gen 1/2, then migrated to Lakeflow SDP <code>AUTO CDC FROM SNAPSHOT</code> (SCD Type 2), automatically tracking <code>__START_AT</code> and <code>__END_AT</code>.
+            </p>
+            <div class="evidence-strip"><code>Stapply-Export-Dev/README.md</code> L72 &middot; <code>bronze.sql</code> L25&ndash;52</div>
+          </article>
+
+          <article class="card">
+            <span class="badge badge-observed">Problem 3 Solved</span>
+            <h3 style="margin-top:0.6rem;">Complex 30-Table Orchestration</h3>
+            <p>
+              <strong>Issue:</strong> Gen 2 required 7 imperative notebooks and 30 Delta tables (~14&ndash;15 min runtime).<br>
+              <strong>Solution:</strong> Consolidated into 3 declarative SQL files (9 SDP objects) with built-in <code>CONSTRAINT</code> expectations, cutting runtime to ~8 min.
+            </p>
+            <div class="evidence-strip"><code>Task run log.png</code> (~14&ndash;15m) &rarr; <code>SDP pipeline (2).png</code> (~8m)</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: OVERALL HLD & LLD -->
+    <section id="architecture">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">02 &middot; High-Level &amp; Low-Level Architecture</span>
+          <h2>End-to-End Hybrid Cloud Architecture (AWS + Databricks)</h2>
+          <p>
+            Clean Mermaid-style flowchart rendered locally via inline SVG (zero external rendering services). Unverified `Newacc` scheduling paths are explicitly marked.
+          </p>
+        </div>
+
+        <div class="diagram-box">
+          <svg viewBox="0 0 1000 320" role="img" aria-label="End-to-End Hybrid Cloud HLD Flowchart">
+            <defs>
+              <marker id="arr-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/>
+              </marker>
+            </defs>
+            <rect x="205" y="18" width="350" height="282" rx="12" fill="#f0f9ff" stroke="#7dd3fc" stroke-dasharray="6 4"/>
+            <text x="220" y="42" fill="#0369a1" font-size="12" font-weight="700" font-family="monospace">AWS Cloud (eu-north-1) &middot; [Runtime-Observed]</text>
+
+            <rect x="580" y="18" width="404" height="282" rx="12" fill="#fff7ed" stroke="#fdba74" stroke-dasharray="6 4"/>
+            <text x="595" y="42" fill="#c2410c" font-size="12" font-weight="700" font-family="monospace">Databricks Serverless + Unity Catalog</text>
+
+            <rect x="16" y="112" width="160" height="90" rx="10" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+            <text x="96" y="142" text-anchor="middle" fill="#0f172a" font-size="13" font-weight="700">Stapply API Feed</text>
+            <text x="96" y="162" text-anchor="middle" fill="#475569" font-size="11">all.parquet</text>
+            <text x="96" y="180" text-anchor="middle" fill="#475569" font-size="11">~5.1M rows / ~2.12 GiB</text>
+
+            <rect x="225" y="66" width="150" height="62" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="300" y="92" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">EventBridge</text>
+            <text x="300" y="110" text-anchor="middle" fill="#475569" font-size="10.5">09:00 IST Daily Cron</text>
+
+            <rect x="225" y="162" width="150" height="92" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="300" y="188" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">ECS Fargate</text>
+            <text x="300" y="206" text-anchor="middle" fill="#475569" font-size="10.5">1 vCPU / 2 GB RAM</text>
+            <text x="300" y="223" text-anchor="middle" fill="#475569" font-size="10.5">64 MiB S3 Multipart</text>
+            <text x="300" y="240" text-anchor="middle" fill="#15803d" font-size="10.5" font-weight="700">0 NAT Gateways (IGW)</text>
+
+            <rect x="405" y="112" width="132" height="90" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+            <text x="471" y="140" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">Amazon S3</text>
+            <text x="471" y="159" text-anchor="middle" fill="#475569" font-size="10">snapshot_date=</text>
+            <text x="471" y="175" text-anchor="middle" fill="#475569" font-size="10">YYYY-MM-DD/</text>
+            <text x="471" y="191" text-anchor="middle" fill="#475569" font-size="10">&lt;S3_BUCKET&gt;</text>
+
+            <rect x="600" y="75" width="175" height="162" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+            <text x="687" y="100" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">Lakeflow SDP (Photon)</text>
+            <text x="687" y="124" text-anchor="middle" fill="#334155" font-size="11">1. bronze_raw (Auto Loader)</text>
+            <text x="687" y="146" text-anchor="middle" fill="#334155" font-size="11">2. bronze_jobs (SCD2 CDC)</text>
+            <text x="687" y="168" text-anchor="middle" fill="#334155" font-size="11">3. silver_enriched (4 DQ)</text>
+            <text x="687" y="190" text-anchor="middle" fill="#334155" font-size="11">4. 6 Gold Materialized Views</text>
+            <text x="687" y="216" text-anchor="middle" fill="#15803d" font-size="10.5" font-weight="700">~8m Runtime (Oct 2&ndash;5)</text>
+
+            <rect x="802" y="102" width="164" height="106" rx="8" fill="#ffffff" stroke="#15803d" stroke-width="1.5"/>
+            <text x="884" y="132" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">Lakeview Dashboard</text>
+            <text x="884" y="152" text-anchor="middle" fill="#475569" font-size="10.5">3 Pages &middot; 22 Datasets</text>
+            <text x="884" y="170" text-anchor="middle" fill="#475569" font-size="10">Current / Movement /</text>
+            <text x="884" y="185" text-anchor="middle" fill="#475569" font-size="10">Job Lifecycle</text>
+
+            <line x1="176" y1="157" x2="223" y2="198" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+            <line x1="300" y1="128" x2="300" y2="160" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+            <line x1="375" y1="208" x2="403" y2="166" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+            <line x1="537" y1="157" x2="598" y2="157" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+            <line x1="775" y1="157" x2="800" y2="157" stroke="#0284c7" stroke-width="2" marker-end="url(#arr-blue)"/>
+          </svg>
+          <p class="diagram-caption">
+            <strong>Verified Sources:</strong> <code>Portfolio/AWS_setup.txt</code>, <code>Archive/Dockerfile</code>, <code>config.py</code>, <code>bronze.sql</code>, <code>silver.sql</code>, <code>gold.sql</code>, <code>CloudWatch logs.png</code>, <code>SDP pipeline (2).png</code>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: CODE-WISE FLOW DIAGRAMS + PAIRED SCREENSHOTS -->
+    <section id="code" class="alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">03 &middot; Code-Wise Working Flow Diagrams</span>
+          <h2>How Every Code File Works &mdash; Flowchart + Matching Screenshots</h2>
+          <p>
+            Select any code module below to view its exact Mermaid-style execution flowchart, plain-English walkthrough, and the matching runtime screenshots that prove it works.
+          </p>
+        </div>
+
+        <div class="tab-bar" data-tab-group="code" role="tablist" aria-label="Code file flowcharts">
+          <button class="tab-btn active" role="tab" aria-selected="true" data-target="cf-app">app.py + Dockerfile</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-target="cf-bronze">bronze.sql (SCD2)</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-target="cf-silver">silver.sql (DQ &amp; Enrich)</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-target="cf-gold">gold.sql + Dashboard</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-target="cf-deploy">01_deploy.py + 03_setup_schedules.py</button>
+          <button class="tab-btn" role="tab" aria-selected="false" data-target="cf-legacy">Gen 1/2 Notebooks (01..04)</button>
+        </div>
+
+        <!-- 1. app.py -->
+        <div id="cf-app" class="tab-panel active" data-tab-panel="code">
+          <div class="code-flow-layout">
+            <div class="diagram-box">
+              <svg viewBox="0 0 640 310" role="img" aria-label="app.py Flowchart">
+                <defs><marker id="m1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/></marker></defs>
+                <rect x="20" y="18" width="265" height="56" rx="28" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="152" y="42" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">EventBridge 09:00 IST</text>
+                <text x="152" y="59" text-anchor="middle" fill="#475569" font-size="10">Triggers python:3.12-slim container</text>
+
+                <rect x="20" y="102" width="265" height="60" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="152" y="128" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">requests.get(SOURCE_URL, stream=True)</text>
+                <text x="152" y="146" text-anchor="middle" fill="#475569" font-size="10">Reads 8 MiB chunks &middot; timeout=(60, 1800)</text>
+
+                <rect x="350" y="102" width="270" height="60" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="485" y="128" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">bytearray() Buffer &ge; 64 MiB?</text>
+                <text x="485" y="146" text-anchor="middle" fill="#475569" font-size="10">Flushes 64 MiB slice &rarr; s3.upload_part()</text>
+
+                <rect x="350" y="196" width="270" height="60" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="485" y="222" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">s3.complete_multipart_upload()</text>
+                <text x="485" y="240" text-anchor="middle" fill="#15803d" font-size="10">snapshot_date=YYYY-MM-DD/all.parquet</text>
+
+                <rect x="20" y="196" width="265" height="60" rx="28" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="152" y="222" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">Container Exits (ExitCode: 0)</text>
+                <text x="152" y="240" text-anchor="middle" fill="#475569" font-size="10">Logs streamed to CloudWatch</text>
+
+                <line x1="152" y1="74" x2="152" y2="100" stroke="#0284c7" stroke-width="2" marker-end="url(#m1)"/>
+                <line x1="285" y1="132" x2="348" y2="132" stroke="#0284c7" stroke-width="2" marker-end="url(#m1)"/>
+                <line x1="485" y1="162" x2="485" y2="194" stroke="#0284c7" stroke-width="2" marker-end="url(#m1)"/>
+                <line x1="350" y1="226" x2="287" y2="226" stroke="#0284c7" stroke-width="2" marker-end="url(#m1)"/>
+              </svg>
+              <p class="diagram-caption"><strong>Files:</strong> <code>Archive/Dockerfile</code> (L1&ndash;13), <code>Portfolio/AWS_setup.txt</code> (L40&ndash;198).</p>
+            </div>
+            <ol class="step-list">
+              <li class="step-item"><span class="step-num">1</span><strong>Zero Local Disk:</strong> Streams ~2.12 GiB Parquet in memory using <code>8 MiB</code> HTTP chunks so a 2 GB RAM Fargate container never runs out of disk or memory.</li>
+              <li class="step-item"><span class="step-num">2</span><strong>64 MiB Multipart Upload:</strong> Buffers chunks until 64 MiB, uploads each part with <code>boto3</code>, and commits all ETags via <code>complete_multipart_upload()</code>.</li>
+              <li class="step-item"><span class="step-num">3</span><strong>IST Partitioning:</strong> Uses <code>ZoneInfo("Asia/Kolkata")</code> (<code>tzdata</code> in Dockerfile) to write <code>snapshot_date=YYYY-MM-DD/all.parquet</code>.</li>
+            </ol>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for app.py + Fargate</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/EventBridge Scheduler.png" alt="EventBridge 09:00 IST rule"></button><div class="mini-shot-cap"><strong>EventBridge Scheduler.png</strong>Daily 09:00 IST trigger enabled.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Fargate source code.png" alt="app.py in CloudShell (redacted)"></button><div class="mini-shot-cap"><strong>Fargate source code.png [Redacted]</strong>Actual app.py streaming code.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/CloudWatch logs.png" alt="CloudWatch multipart upload logs (redacted)"></button><div class="mini-shot-cap"><strong>CloudWatch logs.png [Redacted]</strong>~2.12 GiB multipart parts 1&ndash;4.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Successful snapshot.png" alt="S3 2.2 GB all.parquet"></button><div class="mini-shot-cap"><strong>Successful snapshot.png</strong>2.2 GB all.parquet landed in S3.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. bronze.sql -->
+        <div id="cf-bronze" class="tab-panel" data-tab-panel="code">
+          <div class="code-flow-layout">
+            <div class="diagram-box">
+              <svg viewBox="0 0 640 280" role="img" aria-label="bronze.sql Flowchart">
+                <defs><marker id="m2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c"/></marker></defs>
+                <rect x="20" y="30" width="170" height="68" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="105" y="58" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">S3 Parquet Partitions</text>
+                <text x="105" y="77" text-anchor="middle" fill="#475569" font-size="10">snapshot_date=YYYY-MM-DD/</text>
+
+                <rect x="225" y="20" width="185" height="88" rx="8" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="317" y="46" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">bronze_raw (Streaming)</text>
+                <text x="317" y="65" text-anchor="middle" fill="#475569" font-size="10">STREAM(read_files(...))</text>
+                <text x="317" y="83" text-anchor="middle" fill="#b45309" font-size="10">EXPECT (url IS NOT NULL)</text>
+                <text x="317" y="98" text-anchor="middle" fill="#b45309" font-size="10">ON VIOLATION DROP ROW</text>
+
+                <rect x="445" y="20" width="180" height="88" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="535" y="46" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">bronze_jobs (SCD2)</text>
+                <text x="535" y="65" text-anchor="middle" fill="#475569" font-size="10">AUTO CDC FROM SNAPSHOT</text>
+                <text x="535" y="83" text-anchor="middle" fill="#15803d" font-size="10">__END_AT IS NULL = Active</text>
+                <text x="535" y="98" text-anchor="middle" fill="#ea580c" font-size="10">__END_AT NOT NULL = Removed</text>
+
+                <rect x="135" y="158" width="380" height="86" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                <text x="325" y="182" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">WITH VERSION Snapshot Ordering (bronze.sql L37&ndash;46)</text>
+                <text x="325" y="202" text-anchor="middle" fill="#475569" font-size="10.5">Selects next snapshot_date &gt; last_snapshot_version() ORDER BY snapshot_date LIMIT 1</text>
+                <text x="325" y="222" text-anchor="middle" fill="#475569" font-size="10.5">KEYS (url) &middot; TRACK HISTORY ON 13 attributes (title, company, salary, location...)</text>
+
+                <line x1="190" y1="64" x2="223" y2="64" stroke="#ea580c" stroke-width="2" marker-end="url(#m2)"/>
+                <line x1="410" y1="64" x2="443" y2="64" stroke="#ea580c" stroke-width="2" marker-end="url(#m2)"/>
+                <line x1="535" y1="108" x2="430" y2="156" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="4 3"/>
+              </svg>
+              <p class="diagram-caption"><strong>File:</strong> <code>transformations/bronze/bronze.sql</code> (L10&ndash;52). Note: <code>Newacc</code> hardcodes S3 URI on L7/L16 instead of <code>{{S3_PATH}}</code>.</p>
+            </div>
+            <ol class="step-list">
+              <li class="step-item"><span class="step-num">1</span><strong>Auto Loader Checkpoint:</strong> <code>bronze_raw</code> reads only newly landed S3 snapshot files via <code>STREAM(read_files(...))</code> and drops any row with null <code>url</code>.</li>
+              <li class="step-item"><span class="step-num">2</span><strong>Zero-Code SCD Type 2:</strong> <code>AUTO CDC INTO bronze_jobs FROM SNAPSHOT</code> compares today's snapshot against prior state—inserting new URLs, updating changed attributes, and setting <code>__END_AT</code> on disappeared jobs.</li>
+            </ol>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for bronze.sql</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/SDP Pipeline.png" alt="SDP Lineage Graph (redacted)"></button><div class="mini-shot-cap"><strong>SDP Pipeline.png [Redacted]</strong>S3 &rarr; bronze_raw &rarr; bronze_jobs lineage.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/SDP pipeline (1).png" alt="Full SDP Lineage (redacted)"></button><div class="mini-shot-cap"><strong>SDP pipeline (1).png [Redacted]</strong>Complete Bronze-to-Gold DAG.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Bronze table.png" alt="Unity Catalog Bronze table"></button><div class="mini-shot-cap"><strong>Bronze table.png</strong>Unity Catalog Bronze &amp; Silver tables.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. silver.sql -->
+        <div id="cf-silver" class="tab-panel" data-tab-panel="code">
+          <div class="code-flow-layout">
+            <div class="diagram-box">
+              <svg viewBox="0 0 640 270" role="img" aria-label="silver.sql Flowchart">
+                <defs><marker id="m3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c"/></marker></defs>
+                <rect x="20" y="30" width="165" height="72" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="102" y="58" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">bronze_jobs (SCD2)</text>
+                <text x="102" y="77" text-anchor="middle" fill="#475569" font-size="10">Active + Historical URLs</text>
+
+                <rect x="220" y="18" width="205" height="96" rx="8" fill="#fffbeb" stroke="#b45309" stroke-width="1.5"/>
+                <text x="322" y="44" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">4 DQ CONSTRAINT Rules</text>
+                <text x="322" y="64" text-anchor="middle" fill="#b45309" font-size="10">1. url_not_null (DROP ROW)</text>
+                <text x="322" y="80" text-anchor="middle" fill="#475569" font-size="10">2. title_not_empty (WARN)</text>
+                <text x="322" y="96" text-anchor="middle" fill="#475569" font-size="10">3. company / 4. country_iso (WARN)</text>
+
+                <rect x="455" y="18" width="165" height="96" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="537" y="44" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">silver_enriched (MV)</text>
+                <text x="537" y="64" text-anchor="middle" fill="#15803d" font-size="10">6.9M rows &middot; 2m 0s</text>
+                <text x="537" y="82" text-anchor="middle" fill="#475569" font-size="10">CLUSTER BY</text>
+                <text x="537" y="97" text-anchor="middle" fill="#475569" font-size="10">(country_iso_clean)</text>
+
+                <rect x="20" y="146" width="600" height="96" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+                <text x="320" y="170" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">14 Derived Columns (Replaces 9 Gen-2 Silver Tables)</text>
+                <text x="320" y="192" text-anchor="middle" fill="#334155" font-size="10.5">posted_at_utc &middot; commitment_normalized (Full-time/Part-time/Contract/Internship) &middot; salary_min/max_numeric</text>
+                <text x="320" y="212" text-anchor="middle" fill="#334155" font-size="10.5">36-branch V2 role_family taxonomy &middot; job_age_days &amp; bucket (Fresh/Recent/Ageing/Older) &middot; DQ flags</text>
+
+                <line x1="185" y1="66" x2="218" y2="66" stroke="#ea580c" stroke-width="2" marker-end="url(#m3)"/>
+                <line x1="425" y1="66" x2="453" y2="66" stroke="#ea580c" stroke-width="2" marker-end="url(#m3)"/>
+              </svg>
+              <p class="diagram-caption"><strong>File:</strong> <code>transformations/silver/silver.sql</code> (L9&ndash;164).</p>
+            </div>
+            <ol class="step-list">
+              <li class="step-item"><span class="step-num">1</span><strong>Built-In DQ Gate:</strong> Replaces manual Gen 1/2 DQ scripts with declarative <code>CONSTRAINT ... EXPECT</code> rules; <code>SDP pipeline (3).png</code> shows 414K non-fatal warnings caught cleanly.</li>
+              <li class="step-item"><span class="step-num">2</span><strong>Single-Pass Enrichment:</strong> Consolidates 9 Gen 2 Silver tables into 1 auto-refreshing Materialized View clustered by <code>country_iso_clean</code>.</li>
+            </ol>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for silver.sql</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/SDP pipeline (3).png" alt="SDP row counts and 414K warnings"></button><div class="mini-shot-cap"><strong>SDP pipeline (3).png</strong>6.9M silver_enriched + 414K warnings.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Table.png" alt="Gen 2 9 Silver tables"></button><div class="mini-shot-cap"><strong>Table.png</strong>The 9 Gen-2 Silver tables replaced by silver.sql.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. gold.sql -->
+        <div id="cf-gold" class="tab-panel" data-tab-panel="code">
+          <div class="code-flow-layout">
+            <div class="diagram-box">
+              <svg viewBox="0 0 640 270" role="img" aria-label="gold.sql Flowchart">
+                <defs><marker id="m4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#15803d"/></marker></defs>
+                <rect x="20" y="34" width="160" height="68" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="100" y="62" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">silver_enriched</text>
+                <text x="100" y="80" text-anchor="middle" fill="#475569" font-size="10">WHERE __END_AT IS NULL</text>
+
+                <rect x="20" y="160" width="160" height="68" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="100" y="188" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">bronze_jobs</text>
+                <text x="100" y="206" text-anchor="middle" fill="#475569" font-size="10">__START_AT &amp; __END_AT</text>
+
+                <rect x="220" y="20" width="215" height="100" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="327" y="44" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">5 Explorer &amp; Summary MVs</text>
+                <text x="327" y="64" text-anchor="middle" fill="#475569" font-size="10">gold_job_market_explorer (6.9M)</text>
+                <text x="327" y="80" text-anchor="middle" fill="#475569" font-size="10">country / role / company / location</text>
+                <text x="327" y="98" text-anchor="middle" fill="#15803d" font-size="10">9s&ndash;27s refresh</text>
+
+                <rect x="220" y="152" width="215" height="84" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="327" y="180" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">gold_daily_movement (MV)</text>
+                <text x="327" y="199" text-anchor="middle" fill="#475569" font-size="10">UNION ALL New &amp; Removed counts</text>
+                <text x="327" y="218" text-anchor="middle" fill="#15803d" font-size="10">4s refresh</text>
+
+                <rect x="470" y="75" width="150" height="110" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="545" y="106" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700">Lakeview BI</text>
+                <text x="545" y="126" text-anchor="middle" fill="#475569" font-size="10">1. Current Snapshot</text>
+                <text x="545" y="143" text-anchor="middle" fill="#475569" font-size="10">2. Daily Movement</text>
+                <text x="545" y="160" text-anchor="middle" fill="#475569" font-size="10">3. Job Lifecycle</text>
+
+                <line x1="180" y1="68" x2="218" y2="68" stroke="#15803d" stroke-width="2" marker-end="url(#m4)"/>
+                <line x1="180" y1="194" x2="218" y2="194" stroke="#15803d" stroke-width="2" marker-end="url(#m4)"/>
+                <line x1="435" y1="70" x2="468" y2="115" stroke="#15803d" stroke-width="2" marker-end="url(#m4)"/>
+                <line x1="435" y1="194" x2="468" y2="150" stroke="#15803d" stroke-width="2" marker-end="url(#m4)"/>
+              </svg>
+              <p class="diagram-caption"><strong>Files:</strong> <code>transformations/gold/gold.sql</code> (L10&ndash;148), <code>Top ATS Platform Job Market.lvdash.json</code>.</p>
+            </div>
+            <ol class="step-list">
+              <li class="step-item"><span class="step-num">1</span><strong>Active-Only Summaries:</strong> 4 summary MVs filter <code>WHERE __END_AT IS NULL</code> so dashboard KPIs never double-count removed jobs.</li>
+              <li class="step-item"><span class="step-num">2</span><strong>Full Lifecycle Explorer:</strong> <code>gold_job_market_explorer</code> exposes both Active and Removed rows with <code>first_seen_at</code> and <code>removed_at</code>.</li>
+            </ol>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for gold.sql + Dashboard</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/Dash (3).png" alt="Page 1 Current Snapshot"></button><div class="mini-shot-cap"><strong>Dash (3).png</strong>Page 1: 5.1M active, 479.6K companies.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/dASHBOARD SECOND PAGE.png" alt="Page 2 Daily Movement"></button><div class="mini-shot-cap"><strong>dASHBOARD SECOND PAGE.png</strong>Page 2: Sep 26&ndash;Oct 5 movement.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/3rd page.png" alt="Page 3 Job Lifecycle"></button><div class="mini-shot-cap"><strong>3rd page.png</strong>Page 3: 5M Active, 2M Removed.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Gold tables.png" alt="Unity Catalog Gold tables"></button><div class="mini-shot-cap"><strong>Gold tables.png</strong>Unity Catalog Gold schema tables.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 01_deploy.py + 03_setup_schedules.py -->
+        <div id="cf-deploy" class="tab-panel" data-tab-panel="code">
+          <div class="code-flow-layout">
+            <div class="diagram-box">
+              <svg viewBox="0 0 640 270" role="img" aria-label="01_deploy.py Flowchart">
+                <defs><marker id="m5" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/></marker></defs>
+                <rect x="20" y="20" width="180" height="54" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="110" y="44" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">1. Load config.py</text>
+                <text x="110" y="61" text-anchor="middle" fill="#475569" font-size="10">importlib.util + apiToken()</text>
+
+                <rect x="230" y="20" width="180" height="54" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+                <text x="320" y="44" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">2. POST /api/2.0/pipelines</text>
+                <text x="320" y="61" text-anchor="middle" fill="#475569" font-size="10">Creates/reuses SDP pipeline</text>
+
+                <rect x="440" y="20" width="180" height="54" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+                <text x="530" y="44" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">3. Upload SQL &amp; Poll</text>
+                <text x="530" y="61" text-anchor="middle" fill="#475569" font-size="10">Waits until COMPLETED</text>
+
+                <rect x="80" y="110" width="220" height="54" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="190" y="134" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">4. Publish Lakeview</text>
+                <text x="190" y="151" text-anchor="middle" fill="#475569" font-size="10">embed_credentials: False</text>
+
+                <rect x="340" y="110" width="220" height="54" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="1.5"/>
+                <text x="450" y="134" text-anchor="middle" fill="#0f172a" font-size="11.5" font-weight="700">5. 7-Point SQL Check</text>
+                <text x="450" y="151" text-anchor="middle" fill="#475569" font-size="10">Validates all 9 SDP objects</text>
+
+                <rect x="110" y="198" width="420" height="54" rx="8" fill="#fffbeb" stroke="#b45309" stroke-dasharray="5 3"/>
+                <text x="320" y="222" text-anchor="middle" fill="#b45309" font-size="11.5" font-weight="700">6. 03_setup_schedules.py [Unverified Runtime]</text>
+                <text x="320" y="239" text-anchor="middle" fill="#475569" font-size="10">Creates 09:30 IST Pipeline Job + 10:00 IST Lakeview Refresh</text>
+
+                <line x1="200" y1="47" x2="228" y2="47" stroke="#0284c7" stroke-width="2" marker-end="url(#m5)"/>
+                <line x1="410" y1="47" x2="438" y2="47" stroke="#0284c7" stroke-width="2" marker-end="url(#m5)"/>
+                <line x1="530" y1="74" x2="230" y2="108" stroke="#0284c7" stroke-width="2" marker-end="url(#m5)"/>
+                <line x1="300" y1="137" x2="338" y2="137" stroke="#0284c7" stroke-width="2" marker-end="url(#m5)"/>
+                <line x1="450" y1="164" x2="360" y2="196" stroke="#b45309" stroke-width="1.5" stroke-dasharray="4 3"/>
+              </svg>
+              <p class="diagram-caption"><strong>Files:</strong> <code>01_deploy.py</code> (335L), <code>03_setup_schedules.py</code> (162L), <code>config.py</code> (52L).</p>
+            </div>
+            <ol class="step-list">
+              <li class="step-item"><span class="step-num">1</span><strong>Notebook-Only Deploy:</strong> Uses ephemeral notebook context tokens so no CLI or PAT setup is needed to create the SDP pipeline and dashboard.</li>
+              <li class="step-item"><span class="step-num">2</span><strong>Separate Scheduling (Newacc):</strong> <code>03_setup_schedules.py</code> discovers the SQL warehouse and schedules the job (09:30 IST) and Lakeview refresh (10:00 IST).</li>
+            </ol>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for Deploy &amp; Config</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/SDP pipeline (2).png" alt="Scheduled SDP runs Oct 2-5 (redacted)"></button><div class="mini-shot-cap"><strong>SDP pipeline (2).png [Redacted]</strong>Oct 2&ndash;5 scheduled runs (~8m).</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Workspace project tree.png" alt="Workspace project tree"></button><div class="mini-shot-cap"><strong>Workspace project tree.png</strong>Modular notebook layout.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/00_config.png" alt="Central config notebook"></button><div class="mini-shot-cap"><strong>00_config.png</strong>Centralized configuration pattern.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Gen 1/2 Reference -->
+        <div id="cf-legacy" class="tab-panel" data-tab-panel="code">
+          <div class="grid-2">
+            <div class="card">
+              <h3>Gen 2: 7-Task Medallion (<code>stapply-pipeline-enterprise.zip</code>)</h3>
+              <p><code>01_snapshot_acquisition</code> &rarr; <code>02_bronze_ingestion</code> &rarr; <code>04_data_quality_validation</code> (21 checks) &rarr; <code>03_silver_processing</code> (9 stages) &rarr; <code>05_lifecycle_processing</code> &rarr; <code>06_gold_analytics</code> &rarr; <code>07_monitoring_alerting</code> (30 Delta tables).</p>
+            </div>
+            <div class="card">
+              <h3>Gen 1: 4-Task Job (<code>Stapply-Export-Dev/</code>)</h3>
+              <p><code>01_snapshot_acquisition</code> (UC Volume staging) &rarr; <code>02_data_quality_validation</code> (21 checks) &rarr; <code>03_lifecycle_processing</code> (two-pass Delta <code>MERGE</code>, 5-day S3 retention) &rarr; <code>04_monitoring_alerting</code> (7 Gold tables).</p>
+            </div>
+          </div>
+          <div class="paired-shots">
+            <div class="paired-shots-title">Matching Visual Evidence for Gen 1 &amp; Gen 2</div>
+            <div class="paired-grid">
+              <div class="mini-shot"><button type="button"><img src="assets/images/Job DAG.png" alt="Gen 1 4-task DAG (redacted)"></button><div class="mini-shot-cap"><strong>Job DAG.png [Redacted]</strong>Gen 1 4-task Serverless DAG.</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Task run log.png" alt="Gen 2 7-task timeline"></button><div class="mini-shot-cap"><strong>Task run log.png</strong>Gen 2 7-task timeline (Sep 30).</div></div>
+              <div class="mini-shot"><button type="button"><img src="assets/images/Run_log.png" alt="Gen 2 run history (redacted)"></button><div class="mini-shot-cap"><strong>Run_log.png [Redacted]</strong>Gen 2 Sep 30 runs (~14&ndash;15m).</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 5: HANDOVER & NEW-ACCOUNT RUNBOOK -->
+    <section id="handover">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">04 &middot; Handover &amp; New-Account Runbook</span>
+          <h2>How Anyone Can Deploy &amp; Run This on a Fresh Databricks Account</h2>
+          <p>
+            Exact handover steps derived from <code>stapply-deploymentNewacc.zip::README.md</code>, <code>config.py</code>, and our Phase 3/4 audit (including pre-run fixes for <code>Newacc</code>).
+          </p>
+        </div>
+
+        <div class="runbook-grid">
+          <div class="runbook-step">
+            <div class="runbook-num">Step 1 &middot; Prerequisites</div>
+            <h3>Cloud &amp; UC Permissions</h3>
+            <p>Ensure Unity Catalog external location points to your S3 snapshot bucket, Serverless compute is enabled, a SQL Warehouse exists, and your user has <code>CREATE TABLE</code> / <code>CREATE MATERIALIZED VIEW</code> privileges.</p>
+          </div>
+          <div class="runbook-step">
+            <div class="runbook-num">Step 2 &middot; Edit config.py</div>
+            <h3>Single Config File</h3>
+            <p>Update <code>S3_BUCKET</code>, <code>CATALOG</code>, <code>SCHEMA</code>, <code>ALERT_EMAILS</code>, and <code>SCHEDULE_TIMEZONE</code> in <code>config.py</code>. Set <code>DEVELOPMENT_MODE = False</code> (L24) for production retries.</p>
+          </div>
+          <div class="runbook-step">
+            <div class="runbook-num">Step 3 &middot; Pre-Run Fix</div>
+            <h3>Restore SQL Template</h3>
+            <p>In <code>Newacc</code> <code>bronze.sql</code> (L7, L16), replace the hardcoded S3 URI with <code>'{{S3_PATH}}'</code> so <code>01_deploy.py</code> Step 2 templating injects your bucket automatically. Skip <code>02_handover_guide.py</code>.</p>
+          </div>
+          <div class="runbook-step">
+            <div class="runbook-num">Step 4 &middot; Deploy &amp; Schedule</div>
+            <h3>Run 01_deploy &rarr; 03</h3>
+            <p>Run <code>01_deploy.py</code> (Run All) to build the SDP pipeline, execute the initial load, publish the 3-page dashboard, and pass the 7-point SQL check. Then run <code>03_setup_schedules.py</code>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: LINE-BY-LINE VISUAL EVIDENCE GALLERY (ALL 36) -->
+    <section id="gallery" class="alt-bg">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">05 &middot; Visual Evidence Gallery (36 Screenshots &middot; Dash (2).png Excluded)</span>
+          <h2>Line-by-Line Screenshot Walkthrough &amp; Explanations</h2>
+          <p>
+            Every screenshot is displayed cleanly row-by-row with its uncropped aspect ratio, what it shows, why it matters, and its source evidence. All 9 flagged screenshots are opaquely redacted inside <code>portfolio_site/assets/images/</code> while keeping <code>Portfolio/</code> untouched.
+          </p>
+        </div>
+
+        <div class="tab-bar" role="group" aria-label="Filter screenshots by category">
+          <button class="tab-btn active" data-gallery-filter="all" aria-pressed="true">All (36)</button>
+          <button class="tab-btn" data-gallery-filter="aws" aria-pressed="false">AWS Ingestion (11)</button>
+          <button class="tab-btn" data-gallery-filter="sdp" aria-pressed="false">Medallion &amp; SDP (15)</button>
+          <button class="tab-btn" data-gallery-filter="dashboard" aria-pressed="false">Lakeview Dashboard (10)</button>
+        </div>
+
+        <div class="gallery-list">
+          <!-- AWS INGESTION (11) -->
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/EventBridge Scheduler.png" alt="EventBridge Scheduler daily rule" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">EventBridge Scheduler.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Daily EventBridge schedule <code>stapply-daily-fargate-ingestion</code> enabled to trigger ECS Fargate at 09:00 IST.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Automates daily raw Parquet acquisition 30 minutes before Databricks runs, with zero manual triggers.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>Portfolio/AWS_setup.txt</code> L881&ndash;906 (cron 09:00 Asia/Kolkata, state ENABLED).</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/ECS cluster.png" alt="Amazon ECS Fargate cluster" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">ECS cluster.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Serverless <code>stapply-fargate-cluster</code> showing 0 idle services and 0 EC2 instances between scheduled runs.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Confirms pure pay-per-run compute with zero idle EC2/cluster cost.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>Portfolio/AWS_setup.txt</code> L360&ndash;395.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/ECS task definition.png" alt="ECS task definition" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">ECS task definition.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Active <code>stapply-fargate-ingestion</code> task definition sized at 1 vCPU (1024) and 2 GB (2048 MiB) RAM.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Right-sized container footprint that handles ~2.12 GiB files via streaming without needing large memory.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>Portfolio/AWS_setup.txt</code> L471&ndash;512 (awsvpc, FARGATE).</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Successful Fargate task.png" alt="Active Fargate task revisions" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Successful Fargate task.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">ECS task definition revisions <code>:1</code> and <code>:2</code> both Active in <code>eu-north-1</code>.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Tracks versioned container configuration updates in AWS ECS.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>Portfolio/AWS_setup.txt</code> L513&ndash;622.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/ECR.png" alt="Amazon ECR private repository (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">ECR.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Private Amazon ECR repository <code>stapply-fargate-ingestion</code> in <code>eu-north-1</code> with AES-256 encryption.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Stores the immutable Docker image built from <code>Archive/Dockerfile</code>.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>AWS_setup.txt</code> L4&ndash;31. 12-digit AWS Account ID opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/IAM.png" alt="AWS IAM roles (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">IAM.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Four dedicated IAM roles: <code>DatabricksStapplyS3Role</code>, Fargate execution, task, and EventBridge scheduler roles.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Enforces separation of duties between container execution, S3 write, and Databricks S3 read.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>AWS_setup.txt</code> L269&ndash;359. External Account ID opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Networking&VPC.png" alt="AWS VPC networking dashboard" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Networking&amp;VPC.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Stockholm VPC dashboard: 1 VPC, 3 Subnets, 1 Internet Gateway, 2 Security Groups, and <strong>0 NAT Gateways</strong>.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Using public IP + IGW for outbound HTTPS avoids hourly NAT Gateway and per-GB processing fees.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>AWS_setup.txt</code> L396&ndash;461.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Fargate source code.png" alt="Fargate app.py in CloudShell (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Fargate source code.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">AWS CloudShell view of <code>~/stapply-fargate/app.py</code> showing <code>SOURCE_URL</code> and <code>BUCKET</code> env config.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Proves the exact containerized Python script deployed to ECR.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>AWS_setup.txt</code> L40&ndash;60. Concrete S3 bucket name opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/CloudWatch logs.png" alt="CloudWatch multipart upload logs (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">CloudWatch logs.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">CloudWatch log events verifying ~2.12 GiB (<code>2,273,690,124</code> bytes) streamed in 64 MiB multipart parts 1&ndash;4.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Runtime proof of end-to-end streaming from Stapply API to S3 without local disk buffering.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>2026-09-30T06:02:39Z</code> log stream. Target S3 URI opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Bucket + rawstapplysnapshots + snapshot-date folders..png" alt="S3 snapshot-date partitions" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Bucket + rawstapplysnapshots + snapshot-date folders..png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Amazon S3 console showing Hive-style <code>snapshot_date=YYYY-MM-DD/</code> partitions across Sep 25&ndash;30.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Enables Databricks Auto Loader to incrementally detect new daily snapshot folders.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Matches <code>bronze.sql</code> Auto Loader input path pattern.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="aws">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Successful snapshot.png" alt="2.2 GB all.parquet in S3" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Successful snapshot.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Verified <code>all.parquet</code> (2.2 GB, Standard storage) inside <code>snapshot_date=2026-09-25/</code>.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Confirms complete Parquet file landing ready for Databricks ingestion.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> S3 console timestamp <code>Sep 26, 2026 16:20:16 IST</code>.</div>
+            </div>
+          </article>
+
+          <!-- MEDALLION & SDP (15) -->
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Workspace project tree.png" alt="Databricks Workspace project tree" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Workspace project tree.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Databricks Workspace folder listing <code>00_config</code>, <code>00_dashboard_creator</code>, <code>00_job_creator</code>, <code>00_setup_tables</code>, and <code>01..04</code>.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Shows modular notebook organization for portable multi-account deployment.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Matches <code>Stapply-Export-Dev/</code> centralized config structure.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/00_config.png" alt="Central 00_config notebook" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">00_config.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Centralized <code>00_config</code> notebook defining table references, 5-day S3 retention, and 2-day removal confirmation.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Eliminates scattered hardcoded parameters across downstream pipeline notebooks.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>Stapply-Export-Dev/src/pipelines/00_config</code> L46&ndash;70.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Job DAG.png" alt="Gen 1 4-task Databricks Job DAG (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Job DAG.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Gen 1 4-task Serverless DAG: <code>snapshot_acquisition</code> &rarr; <code>dq_gate</code> &rarr; <code>lifecycle_processing</code> &rarr; <code>monitoring</code> (If all done).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Demonstrates fail-fast DQ gating and guaranteed monitoring execution even on upstream failure.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>stapply_daily_pipeline.json</code>. Email path fragments opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Successful job run-1.png" alt="Gen 1 job run matrix" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Successful job run-1.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Gen 1 Sep 27&ndash;28 run matrix showing recovery from 3 initial failures to 2 green end-to-end runs.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Visualizes iterative debugging and stabilization of the Gen 1 pipeline.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Corroborates <code>ops/recent_runs.json</code> &amp; <code>ops/run_summary.md</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Bronze table.png" alt="Unity Catalog Bronze and Silver tables" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Bronze table.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Unity Catalog Explorer showing Gen 2 <code>bronze.stapply_jobs</code> (1 table) and 9 <code>silver</code> stage tables.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Verifies governed Medallion schema separation in Unity Catalog.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Matches <code>stapply-pipeline-enterprise.zip::manifest.json</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Table.png" alt="Unity Catalog Silver table list" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Table.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Unity Catalog sidebar listing the 9 Gen 2 Silver transformation tables (<code>clean</code> through <code>text_checked</code>).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Illustrates the 9-table complexity that Gen 3 <code>silver_enriched</code> MV later consolidated into 1 view.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Gen 2 <code>03_silver_processing</code> stage outputs.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Gold tables.png" alt="Unity Catalog Gold tables" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Gold tables.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Unity Catalog <code>gold</code> schema listing all 7 core Delta tables (<code>company_identity_mapping_v1</code> to <code>job_snapshot_run_log</code>).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Confirms DDL deployment and persistent Delta state tables.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> <code>sql/ddl/gold_tables.sql</code> L6&ndash;278.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Lifecycle table.png" alt="gold.job_lifecycle schema viewer" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Lifecycle table.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Unity Catalog schema inspector for <code>gold.job_lifecycle</code> alongside governed Volumes (<code>code_infra</code>, <code>exports</code>).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Shows the 39-column Delta schema and UC Volume governance.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> 39-column Delta table verified in Unity Catalog.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Run_log.png" alt="Gen 2 7-task Medallion run history (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Run_log.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Gen 2 Medallion run history (Sep 30) showing 15m 6s, 15m 7s, and 9m 4s successful runs after earlier failures.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Establishes the ~14&ndash;15 min runtime baseline before Lakeflow SDP optimization.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> <code>Run ID</code> column values opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Task run log.png" alt="Gen 2 7-task timeline" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Task run log.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Gen 2 timeline showing all 7 tasks green (<code>snapshot 20.1s</code>, <code>bronze 1m13s</code>, <code>dq 1m13s</code>, <code>silver 5m16s</code>, <code>lifecycle 2m51s</code>, <code>gold 3m25s</code>, <code>monitor 44.6s</code>).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Proves exact task-by-task execution breakdown of the 7-task Medallion job.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Captured <code>2026-09-30T15:39Z</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Updated Run log.png" alt="Updated 7-task Medallion run matrix" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Updated Run log.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Stabilized Gen 2 7-task run matrix confirming all Medallion stages green.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Confirms repeatable Gen 2 job completion prior to Gen 3 migration.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Captured <code>2026-09-30T15:39Z</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/SDP Pipeline.png" alt="Lakeflow SDP lineage graph (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">SDP Pipeline.png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Gen 3 <code>Stapply Enterprise SDP Pipeline</code> declarative lineage graph inside Databricks UI.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Shows Databricks automatically inferring DAG dependencies directly from the 3 SQL files.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> Matches <code>bronze.sql</code> &rarr; <code>silver.sql</code> &rarr; <code>gold.sql</code>. S3 source URI redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/SDP pipeline (1).png" alt="Lakeflow SDP full lineage (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">SDP pipeline (1).png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">Full 9-object SDP graph: S3 &rarr; <code>bronze_raw</code> &rarr; <code>bronze_jobs</code> &rarr; <code>gold_daily_movement</code> &amp; <code>silver_enriched</code> &rarr; 5 Gold MVs.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Visualizes the exact parent-child lineage of all 9 declarative tables/views.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> Oct 5 run lineage. Leftmost S3 source URI redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/SDP pipeline (2).png" alt="Scheduled SDP + Dashboard runs Oct 2-5 (redacted)" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">SDP pipeline (2).png</span><span class="badge badge-redacted">[Redacted Copy]</span></div>
+              <p class="shot-desc">4 consecutive scheduled daily runs (Oct 2&ndash;5 at 09:30 IST) completing in 7m 50s&ndash;8m 09s across <code>run_sdp_pipeline</code> &amp; <code>refresh_dashboard</code>.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Hard proof of production reliability and ~45% faster runtime vs. Gen 2.</p>
+              <div class="shot-evidence ev-redacted"><strong>Evidence:</strong> Oct 2&ndash;5 scheduled runs. Numeric Run IDs opaquely redacted.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="sdp">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/SDP pipeline (3).png" alt="SDP row counts and expectation metrics" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">SDP pipeline (3).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Per-object SDP metrics: 5.1M <code>bronze_raw</code> (55s), 6.9M <code>silver_enriched</code> (2m, 414K expectation warnings), 6.9M Gold Explorer (27s).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Proves live data volumes, stage timings, and active DQ expectation enforcement.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> All 9 SDP objects populated on Oct 5 run.</div>
+            </div>
+          </article>
+
+          <!-- LAKEVIEW DASHBOARD (10) -->
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (3).png" alt="Lakeview Current Job Market KPIs" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (3).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Page 1 (Current Snapshot): 5.1M Active Jobs, 479.6K Companies, 87 Countries, 436.4K Fresh, 142.1K Remote, 6 global filters.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Executive overview of the global job market powered by Gold MVs.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Queries <code>gold_job_market_explorer</code> &amp; summary MVs.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (4).png" alt="Avg Salary Range and Top Hiring Trends" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (4).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Average salary range by country (IN, CA, IE, GB) and Top Hiring Trends employer leaderboard.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Demonstrates business value of Silver numeric salary parsing and company cleaning.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Powered by <code>silver.sql</code> L51&ndash;55.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (5).png" alt="Top 15 Countries and Role Families" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (5).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Top 15 Countries (DE 1.04M, US 914.14K, FR 436.7K) and Top 15 Role Families from the 36-branch V2 taxonomy.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Shows geographic and role-family concentration across 5.1M listings.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Queries <code>gold_country_market_summary</code> &amp; <code>gold_country_role_summary</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (6).png" alt="Top Countries and Role Families scrolled" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (6).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Published full-screen layout of Top 15 Countries and Role Families charts.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Confirms clean published Lakeview rendering without edit chrome.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Published Lakeview view (<code>.lvdash.json</code> Page 1).</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (7).png" alt="Top 15 Companies and Job Age Distribution" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (7).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Top 15 Companies and Job Age Distribution (Date Unknown 1.33M, Older 1.18M, Recent 1.17M, Ageing 1.02M, Fresh 436.36K).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Highlights posting freshness buckets computed in Silver.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Queries <code>gold_country_role_company_summary</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (8).png" alt="Remote split, Salary Currency, ATS Platform" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (8).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Remote vs Non-Remote split, Salary by Currency (USD, EUR, CAD), and ATS Platform share (eures, workday, bundesagentur).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Reveals ATS market share and remote-work availability.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Page 1 bottom analytics tiles (<code>.lvdash.json</code>).</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (9).png" alt="Daily Job Movement Sep 30 baseline" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (9).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Page 2 (Daily Job Movement) on Sep 30 baseline: 5M New Jobs, 0 Removed, 5.14M Net Active Change.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Captures Day-1 baseline state prior to multi-day removals.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Baseline day-1 snapshot behavior.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/dASHBOARD SECOND PAGE.png" alt="Daily Job Movement multi-day Oct 5" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">dASHBOARD SECOND PAGE.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Page 2 on Oct 5 multi-day history: Movement by Country, Role Family, and 281-page Country+Role drill-down (Sep 26&ndash;Oct 5).</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Demonstrates daily hiring velocity tracking across 10 days of history.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Queries <code>gold_daily_movement</code>.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/Dash (1).png" alt="Job Lifecycle Sep 30 baseline" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">Dash (1).png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Page 3 (Job Lifecycle) on Sep 30 baseline: 5M Active, 5M Total Tracked, 0 Confirmed Removed.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Establishes initial SCD Type 2 state before removals occurred.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Sep 30 Lakeview Page 3 snapshot.</div>
+            </div>
+          </article>
+
+          <article class="shot-row" data-category="dashboard">
+            <button class="shot-thumb-btn" type="button"><img src="assets/images/3rd page.png" alt="Job Lifecycle Oct 5 multi-day view" loading="lazy"></button>
+            <div class="shot-body">
+              <div class="shot-header"><span class="shot-name">3rd page.png</span><span class="badge badge-observed">[Runtime-Observed]</span></div>
+              <p class="shot-desc">Page 3 on Oct 5: 5M Active (5.1M), 2M Confirmed Removed (1.77M), 7M Total Tracked, First Seen Distribution Sep 26&ndash;Oct 5.</p>
+              <p class="shot-why"><strong>Why it matters:</strong> Ultimate proof of SCD Type 2 historical tracking (<code>__END_AT</code>) working in production.</p>
+              <div class="shot-evidence"><strong>Evidence:</strong> Oct 5 Lakeview Page 3 snapshot.</div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 7: EVIDENCE REGISTER & PUBLICATION SAFETY (HTML FORMAT) -->
+    <section id="evidence">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-kicker">06 &middot; Evidence Register &amp; Publication Safety</span>
+          <h2>Verified Evidence Register &amp; GitHub-Readiness Checklist</h2>
+          <p>
+            Every technical claim in this portfolio is strictly categorized below by verification status—zero unverified execution claims, zero automated unit-test fabrications, and zero exposed secrets.
+          </p>
+        </div>
+
+        <h3>Evidence Register</h3>
+        <div class="data-table-wrap" style="margin-bottom:2rem;">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Component / Claim</th>
+                <th>Concrete Evidence &amp; Source</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge badge-observed">[Runtime-Observed]</span></td>
+                <td>AWS ECS Fargate streaming upload (~2.12 GiB Parquet, 64 MiB multipart, 0 NAT Gateways)</td>
+                <td><code>Portfolio/AWS_setup.txt</code> (L40&ndash;906), <code>CloudWatch logs.png</code>, <code>Networking&amp;VPC.png</code>, <code>Successful snapshot.png</code></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-observed">[Runtime-Observed]</span></td>
+                <td>Gen 2 7-task Medallion job (30 Delta tables, ~14&ndash;15 min green run on Sep 30)</td>
+                <td><code>Task run log.png</code>, <code>Run_log.png</code>, <code>Updated Run log.png</code>, <code>Bronze table.png</code></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-observed">[Runtime-Observed]</span></td>
+                <td>Gen 3 Lakeflow SDP 4 consecutive scheduled runs (Oct 2&ndash;5, 7m 50s&ndash;8m 09s, 9 objects, 414K Silver DQ warnings)</td>
+                <td><code>SDP pipeline (2).png</code>, <code>SDP pipeline (3).png</code>, <code>Dash (1)&ndash;(9).png</code>, <code>dASHBOARD SECOND PAGE.png</code>, <code>3rd page.png</code></td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-implemented">[Implemented]</span></td>
+                <td>Gen 3 <code>stapply-deploymentNewacc.zip</code> package (<code>config.py</code>, <code>01_deploy.py</code>, <code>03_setup_schedules.py</code>, <code>bronze/silver/gold.sql</code>, <code>.lvdash.json</code>)</td>
+                <td>Inspected directly inside <code>stapply-deploymentNewacc.zip</code> (10 files)</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-unverified">[Unverified]</span></td>
+                <td>End-to-end runtime execution of <code>Newacc</code> <code>03_setup_schedules.py</code> (separate 09:30 / 10:00 schedules) &amp; <code>embed_credentials: False</code></td>
+                <td>No runtime screenshot or log exists for the secondary account variant; <code>Newacc</code> <code>bronze.sql</code> also hardcodes S3 URI on L7/L16</td>
+              </tr>
+              <tr>
+                <td><span class="badge badge-unverified">[Unverified]</span></td>
+                <td>Automated unit/integration tests (<code>pytest</code> / <code>unittest</code>)</td>
+                <td>Zero unit test suites exist for authored Databricks/Fargate code; validation relies on runtime assertions, 21 SQL DQ checks, and 4 SDP <code>CONSTRAINT</code>s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>GitHub-Publication Safety Checklist</h3>
+        <div class="data-table-wrap">
+          <table class="matrix-table">
+            <thead>
+              <tr>
+                <th>Check</th>
+                <th>Safety Control Applied</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Secrets &amp; Keys</strong></td>
+                <td>Scanned all 14 text files in <code>portfolio_site/</code> for Databricks PATs, AWS keys, and PEM private keys</td>
+                <td><span class="badge badge-observed">PASS (0 leaks)</span></td>
+              </tr>
+              <tr>
+                <td><strong>AWS Account &amp; S3 Bucket IDs</strong></td>
+                <td>Excluded <code>AWS_setup.txt</code>; anonymized S3 paths in HTML/docs; opaquely redacted <code>ECR.png</code>, <code>IAM.png</code>, <code>Fargate source code.png</code>, <code>CloudWatch logs.png</code>, <code>SDP Pipeline.png</code>, <code>SDP pipeline (1).png</code></td>
+                <td><span class="badge badge-observed">PASS (Redacted)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Emails &amp; Databricks IDs</strong></td>
+                <td>Removed all corporate/personal emails and workspace URLs; opaquely redacted <code>Job DAG.png</code>, <code>Run_log.png</code>, <code>SDP pipeline (2).png</code></td>
+                <td><span class="badge badge-observed">PASS (Redacted)</span></td>
+              </tr>
+              <tr>
+                <td><strong>Original Workspace Integrity</strong></td>
+                <td>Verified zero modifications to <code>Portfolio/</code>, <code>Archive/</code>, <code>Stapply-Export-Dev/</code>, and root archives</td>
+                <td><span class="badge badge-observed">PASS (0 modified)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Top ATS Platform Jobs &mdash; Enterprise Data Engineering Portfolio &middot; Rishikesh &middot; Local Light-Theme Static Build (Zero External CDNs)</p>
+    </div>
+  </footer>
+
+  <!-- LIGHTBOX MODAL -->
+  <div id="lightbox-modal" class="modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="lightbox-title">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 id="lightbox-title" class="modal-title">Screenshot</h3>
+        <button id="lightbox-close" class="modal-close" type="button" aria-label="Close modal">Close (Esc)</button>
+      </div>
+      <div class="modal-content">
+        <img id="lightbox-img" src="" alt="">
+        <div class="modal-meta">
+          <p id="lightbox-caption" class="modal-caption"></p>
+          <p id="lightbox-evidence" class="modal-evidence"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

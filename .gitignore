@@ -1,0 +1,37 @@
+# ============================================================
+# Stapply Portfolio Site — .gitignore
+# ============================================================
+# This .gitignore is intentionally minimal — portfolio_site/
+# contains only sanitized code + static assets. Nothing here
+# should ever contain credentials or private data.
+# ============================================================
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python (if you run local scripts here)
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.env
+.venv/
+venv/
+
+# Node (if you add a build step later)
+node_modules/
+dist/
+.cache/
+
+# Temp files
+*.tmp
+*.bak
+*.log
